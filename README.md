@@ -1,23 +1,22 @@
 # Hotel-Management-System
 
-Authentication:
+**Authentication:**
 Implement user registration and login for hotel managers and customers.
 Use JWT for secure authentication.
 
-Password Hashing:
+**Password Hashing:**
 Hash and salt passwords before storing them in the database.
 
-Protected Routes:
+**Protected Routes:**
 Use middleware to control access to routes. For example, only hotel managers can update room availability, and customers can book rooms.
 
-Email Notifications:
+**Email Notifications:**
 Send email notifications to customers to confirm their room bookings and to hotel managers when new bookings are made.
 
-Middleware:
+**Middleware:**
 Implement middleware for logging, error handling, and input validation.
 
-User Schema:
-
+**User Schema:**
 First Name
 Last Name
 Email
@@ -25,8 +24,7 @@ Password (hashed)
 Salt (string of characters)
 Account Type: enum[Customer, Hotel Manager, Admin] (default: Customer)
 
-Room Schema:
-
+**Room Schema:**
 Hotel ID
 Room Number
 Room Type
@@ -34,15 +32,14 @@ Price
 Availability: enum[Available, Booked]
 Bookings: Array of Booking
 
-Booking Schema:
-
+**Booking Schema:**
 Customer ID
 Room ID
 Check-In Date
 Check-Out Date
 Status: enum[Reserved, Checked-In, Checked-Out]
 
-Hotel Management System Routes:
+**Hotel Management System Routes:**
 
 /signup
 Method: POST
@@ -63,7 +60,6 @@ method : POST
 params : token
 body : { new_password }
 description : If the token is verified then it should reset the password
-
 
 /room/list
 Method: GET
