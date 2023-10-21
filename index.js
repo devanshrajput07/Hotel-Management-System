@@ -102,9 +102,9 @@ app.use(express.json());
 // Rest Api
 
 // Add a User
-app.post('/signup', async (req, res) => {
+app.post('/signup', async(req, res) => {
   try {
-    const { firstName, lastName, email, accounttype } = req.body;
+    const { firstName, lastName, email, accounttype , password } = req.body;
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
     const userData = await User.create({
@@ -112,7 +112,7 @@ app.post('/signup', async (req, res) => {
       lastName,
       email,
       accounttype,
-      password: hashedPassword,
+      password,
     });
     res.status(201).json(userData);
   } catch (error) {
