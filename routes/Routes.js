@@ -9,4 +9,7 @@ router.post('/login', UserController.userLogin)
 router.post('/send-reset-password-email', UserController.sendUserPasswordResetEmail)
 router.post('/reset-password/:id/:token', UserController.userPasswordReset)
 
+//Room Routes
+router.get('/room/list', RoomController.roomList)
+
 export default router
