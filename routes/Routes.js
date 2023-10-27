@@ -11,5 +11,7 @@ router.post('/reset-password/:id/:token', UserController.userPasswordReset)
 
 //Room Routes
 router.get('/room/list', RoomController.roomList)
+router.post('/room/book', RoomController.roomBook)
+
 
 export default router
