@@ -12,6 +12,9 @@ router.post('/reset-password/:id/:token', UserController.userPasswordReset)
 
 //Room Routes
 router.get('/room/list', RoomController.roomList)
+router.put('/room/update', RoomController.roomUpdate)
+router.post('/room/checkout', RoomController.roomCheckout)
+
 
 //Booking Routes
 router.post('/room/book', BookController.roomBook)

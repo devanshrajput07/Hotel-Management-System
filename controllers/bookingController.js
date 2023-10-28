@@ -3,7 +3,8 @@ import RoomModel from "../models/Room.js";
 
 class BookController {
     static roomBook = async (req, res) => {
-        const { hotelId, customerId, checkInDate, checkOutDate } = req.body;
+        const { hotelId } = req.query;
+        const { customerId, checkInDate, checkOutDate } = req.body;
         try {
             const room = await RoomModel.findOne({ hotelId, availability: 'Available' });
             if (!room) {
