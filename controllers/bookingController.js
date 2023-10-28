@@ -1,4 +1,5 @@
-import BookingModel from "../models/Booking";
+import BookingModel from "../models/Booking.js";
+import RoomModel from "../models/Room.js";
 
 class BookController {
     static roomBook = async (req, res) => {
@@ -27,3 +28,5 @@ class BookController {
         }
     }
 }
+
+export default BookController

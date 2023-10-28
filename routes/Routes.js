@@ -2,6 +2,7 @@ import express from 'express';
 const router = express.Router();
 import UserController from '../controllers/userController.js';
 import RoomController from '../controllers/roomController.js';
+import BookController from '../controllers/bookingController.js';
 
 // Public Routes
 router.post('/signup', UserController.userRegistration)
@@ -11,7 +12,9 @@ router.post('/reset-password/:id/:token', UserController.userPasswordReset)
 
 //Room Routes
 router.get('/room/list', RoomController.roomList)
-router.post('/room/book', RoomController.roomBook)
+
+//Booking Routes
+router.post('/room/book', BookController.roomBook)
 
 
 export default router
