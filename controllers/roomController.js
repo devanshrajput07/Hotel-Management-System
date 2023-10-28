@@ -1,6 +1,6 @@
 import BookingModel from "../models/Booking.js";
 import RoomModel from "../models/Room.js";
-import UserModel from "../models/User.js"; // Add the appropriate import for the UserModel
+import UserModel from "../models/User.js";
 
 class RoomController {
   static roomList = async (req, res) => {
@@ -41,21 +41,6 @@ class RoomController {
       res.send({ status: 'failed', message: 'An error occurred' });
     }
   }
-
-  static roomCheckout = async (req, res) => {
-    const { roomId } = req.query;
-    try {
-      const checkedOutRoom = await BookingModel.findByIdAndUpdate(roomId, { $set: { status: 'Checked Out' } }, { new: true });
-      if (!checkedOutRoom) {
-        return res.status(404).send({ status: 'failed', message: 'Room not found' });
-      }
-      res.status(200).send({ status: 'success', message: 'Room checked out successfully', data: checkedOutRoom });
-    } catch (error) {
-      console.error(error);
-      res.status(500).send('Server Error');
-    }
-  }
-
 }
 
 export default RoomController;

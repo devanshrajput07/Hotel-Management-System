@@ -108,6 +108,19 @@ class UserController {
         }
     }
 
+    static deleteUser = async (req, res) => {
+        const { email } = req.body;  
+        try {
+          const deletedUser = await UserModel.findOneAndDelete({ email: email }); 
+          if (!deletedUser) {
+            return res.status(404).json({ message: 'User not found' });
+          }
+          res.status(200).json({ message: 'User deleted successfully', deletedUser });
+        } catch (error) {
+          console.error(error);
+          res.status(500).json({ message: 'Server error', error: error.message });
+        }
+      }
 }
 
 export default UserController
