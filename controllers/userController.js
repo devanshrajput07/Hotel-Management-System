@@ -34,9 +34,9 @@ class UserController {
                     })
                     await doc.save()
                     const saved_user = await UserModel.findOne({ email: req.body.email })
-                    if(saved_user){
+                    if (saved_user) {
                         res.render(path.join(__dirname, "views/login.ejs"), { user: req.user });
-                    }else{
+                    } else {
                         res.render(path.join(__dirname, "views/Hotel.ejs"));
                         alert("Signup again")
                     }
@@ -79,58 +79,72 @@ class UserController {
     static sendUserPasswordResetEmail = async (req, res) => {
         const { email } = req.body;
         if (email) {
-            const user = await UserModel.findOne({ email: email });
-            if (user) {
-                const secret = user._id + process.env.JWT_SECRET_KEY;
-                const token = jwt.sign({ userID: user._id, type: 'reset' }, secret, { expiresIn: '15m' });
-                const link = `http://127.0.0.1:3000/api/user/reset/${user._id}/${token}`;
-                console.log(link);
-                // // Send Email
-                let info = await transporter.sendMail({
-                    from: process.env.EMAIL_USER,
-                    to: user.email,
-                    subject: "Hotel - Password Reset Link",
-                    html: `<a href=${link}>Click Here</a> to Reset Your Password`,
-                });
-                // Save the token to the user's document in the database
-                await UserModel.findByIdAndUpdate(user._id, { $set: { resetToken: token } });
-                res.send({ status: "success", message: "Password Reset Email Sent... Please Check Your Email" });
-            } else {
-                res.send({ status: "failed", message: "Email doesn't exist" });
+            try {
+                const user = await UserModel.findOne({ email: email });
+                if (user) {
+                    const secret = user._id.toString() + process.env.JWT_SECRET_KEY;
+                    const token = jwt.sign({ userID: user._id.toString(), type: 'reset' }, secret, { expiresIn: '15m' });
+                    const link = `http://127.0.0.1:3000/api/user/reset/${user._id}/${token}`;
+                    console.log(link);
+
+                    // Send Email
+                    let info = await transporter.sendMail({
+                        from: process.env.EMAIL_USER,
+                        to: user.email,
+                        subject: "Hotel - Password Reset Link",
+                        html: `<a href=${link}>Click Here</a> to Reset Your Password`,
+                    });
+
+                    res.send({ status: "success", message: "Password Reset Email Sent... Please Check Your Email" });
+                } else {
+                    res.send({ status: "failed", message: "Email doesn't exist" });
+                }
+            } catch (error) {
+                console.log(error);
+                res.send({ status: "failed", message: "Error occurred while sending the email" });
             }
         } else {
             res.send({ status: "failed", message: "Email Field is Required" });
         }
     };
-    
+
     static userPasswordReset = async (req, res) => {
         const { password } = req.body;
-        const { id, token } = req.params;
-        const user = await UserModel.findById(id);
-        const new_secret = user._id + process.env.JWT_SECRET_KEY;
+        const { token } = req.params;
         try {
-            const savedToken = user.resetToken;
-            if (token !== savedToken) {
-                throw new Error("Invalid or expired token");
+            const user = await UserModel.findById(id);
+            if (!user) {
+                return res.status(404).json({ status: "failed", message: "User not found" });
+            }
+            const new_secret = user._id.toString() + process.env.JWT_SECRET_KEY;
+            const savedToken = user.resetToken; // Updated the field to resetToken
+            if (!savedToken || token !== savedToken) {
+                return res.status(400).json({ status: "failed", message: "Invalid or expired token" });
             }
             jwt.verify(token, new_secret);
             if (password) {
                 const salt = await bcrypt.genSalt(10);
                 const newHashPassword = await bcrypt.hash(password, salt);
-                await UserModel.findByIdAndUpdate(user._id, { $set: { password: newHashPassword, resetToken: null } });
+                user.password = newHashPassword;
+                user.resetToken = resetToken; // Updated the field to resetToken
+                await user.save();
                 res.send({ status: "success", message: "Password Reset Successfully" });
             } else {
-                res.send({ status: "failed", message: "All Fields are Required" });
+                res.status(400).json({ status: "failed", message: "All Fields are Required" });
             }
         } catch (error) {
             console.log(error);
-            res.send({ status: "failed", message: "Invalid or expired token" });
+            res.status(500).json({ status: "failed", message: error.message });
         }
-    };    
+    };
 
     static deleteUser = async (req, res) => {
         const { email } = req.body;
         try {
+            const requestingUser = await UserModel.findOne({ email: req.user.email }); // Assuming req.user contains the user's information
+            if (requestingUser.accounttype !== 'Admin') {
+                return res.status(403).json({ message: 'Access denied. Only Admins can delete users.' });
+            }
             const deletedUser = await UserModel.findOneAndDelete({ email: email });
             if (!deletedUser) {
                 return res.status(404).json({ message: 'User not found' });
