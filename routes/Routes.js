@@ -1,25 +1,27 @@
 import express from 'express';
-const router = express.Router();
 import UserController from '../controllers/userController.js';
 import RoomController from '../controllers/roomController.js';
 import BookController from '../controllers/bookingController.js';
+const app = express()
+import ejs from "ejs";
+app.set("view engine", "ejs");
 
 // Public Routes
-router.post('/signup', UserController.userRegistration)
-router.post('/login', UserController.userLogin)
-router.post('/send-reset-password-email', UserController.sendUserPasswordResetEmail)
-router.post('/reset-password/:id/:token', UserController.userPasswordReset)
-router.delete('/admin/delete' , UserController.deleteUser)
+app.post('/signup', UserController.userRegistration)
+app.post('/login', UserController.userLogin)
+app.post('/send-reset-password-email', UserController.sendUserPasswordResetEmail)
+app.post('/reset-password/:id/:token', UserController.userPasswordReset)
+app.delete('/admin/delete' , UserController.deleteUser)
 
 //Room Routes
-router.get('/room/list', RoomController.roomList)
-router.put('/room/update', RoomController.roomUpdate)
-router.post('/room/checkout', BookController.roomCheckout)
+app.get('/room/list', RoomController.roomList)
+app.put('/room/update', RoomController.roomUpdate)
+app.post('/room/checkout', BookController.roomCheckout)
 
 //Booking Routes
-router.post('/room/book', BookController.roomBook)
-router.get('booking/list' , BookController.userBooking)
-router.get('/booking/all', BookController.Bookings)
-router.delete('booking/cancel', BookController.bookingCancel)
+app.post('/room/book', BookController.roomBook)
+app.get('booking/list' , BookController.userBooking)
+app.get('/booking/all', BookController.Bookings)
+app.delete('booking/cancel', BookController.bookingCancel)
 
-export default router
+export default app
