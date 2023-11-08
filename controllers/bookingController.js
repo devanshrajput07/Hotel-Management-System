@@ -100,7 +100,7 @@ class BookController {
       await BookingModel.findByIdAndDelete(bookingId);
       res.status(200).json({ message: 'Booking canceled successfully' });
     }else{
-      res.status(200).json({ message: 'Access denied' });
+      res.status(200).json({ message: 'Access deniedg' });
     }
     } catch (error) {
       console.error(error);
