@@ -141,7 +141,7 @@ class UserController {
     static deleteUser = async (req, res) => {
         const { email } = req.body;
         try {
-            const requestingUser = await UserModel.findOne({ email: req.user.email }); // Assuming req.user contains the user's information
+            const requestingUser = await UserModel.findOne({ email: req.user.email });
             if (requestingUser.accounttype !== 'Admin') {
                 return res.status(403).json({ message: 'Access denied. Only Admins can delete users.' });
             }
