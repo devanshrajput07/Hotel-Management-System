@@ -32,16 +32,15 @@ class BookController {
   static roomCheckout = async (req, res) => {
     const { roomId } = req.body;
     try {
-      let room = await BookingModel.findone({ roomId: roomId });
-      if (!room) {
+      let booking = await BookingModel.find({ roomId: roomId });
+      if (!booking) {
         return res.status(404).json({ message: 'Room not found' });
       }
-      if (room.availability !== 'Booked') {
-        return res.status(400).json({ message: 'Room is not currently booked' });
+      if (booking.status !== 'Checked-In') {
+        return res.status(400).json({ message: 'You are not Checked-In yet' });
       }
-      room.availability = 'Available';
-      room.bookings = [];
-      room = await room.save();
+      booking.status = 'Checked-Out';
+      booking = await booking.save();
       res.status(200).json({ message: 'Checkout successful', room });
     } catch (error) {
       console.error(error);
