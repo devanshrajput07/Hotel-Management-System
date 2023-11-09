@@ -12,7 +12,6 @@ const DATABASE_URL = process.env.DATABASE_URL
 //Cors Policy
 app.use(cors())
 
-
 // Database Connection
 connectDB(DATABASE_URL)
 
@@ -23,5 +22,5 @@ app.use(express.json())
 app.use("/api/user", Routes)
 
 app.listen(port, () => {
-    console.log(`Server listening at http://localhost:${port}`)
-  })
+  console.log(`Server listening at http://localhost:${port}`)
+})

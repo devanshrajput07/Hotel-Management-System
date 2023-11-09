@@ -1,10 +1,10 @@
 import BookingModel from "../models/Booking.js";
 import RoomModel from "../models/Room.js";
+import UserModel from "../models/User.js";
 
 class BookController {
   static roomBook = async (req, res) => {
-    const { hotelId } = req.query;
-    const { customerId, checkInDate, checkOutDate } = req.body;
+    const { hotelId, customerId, checkInDate, checkOutDate } = req.body;
     try {
       const room = await RoomModel.findOne({ hotelId, availability: 'Available' });
       if (!room) {
@@ -13,7 +13,7 @@ class BookController {
       // Create a booking entry for the customer
       const newBooking = new Booking({
         customerID: customerId,
-        roomID: room.id,
+        roomID: mongoose.Schema.Types.ObjectId,
         checkInDate,
         checkOutDate,
         status: 'Reserved',
@@ -32,7 +32,7 @@ class BookController {
   static roomCheckout = async (req, res) => {
     const { roomId } = req.body;
     try {
-      let room = await BookingModel.findById(roomId);
+      let room = await BookingModel.findone({ roomId: roomId });
       if (!room) {
         return res.status(404).json({ message: 'Room not found' });
       }
@@ -50,13 +50,13 @@ class BookController {
   }
 
   static userBooking = async (req, res) => {
-    const { email ,customerId } = req.body;
+    const { email, customerId } = req.body;
     try {
-      const requestingUser = await UserModel.findOne({ email: req.user.email });
+      const requestingUser = await UserModel.findOne({ email: email });
       if (requestingUser.accounttype == 'Customer') {
         const bookings = await BookingModel.find({ customerId: customerId });
         res.status(200).json({ bookings });
-      }else{
+      } else {
         return res.status(403).json({ message: 'Access denied. Only Admins can access this' });
       }
     } catch (error) {
@@ -68,11 +68,11 @@ class BookController {
   static Bookings = async (req, res) => {
     const { email } = req.body;
     try {
-      const requestingUser = await UserModel.findOne({ email: req.user.email });
+      const requestingUser = await UserModel.findOne({ email: email });
       if (requestingUser.accounttype == 'Admin') {
         const bookings = await BookingModel.find();
         res.status(200).json({ bookings });
-      }else{
+      } else {
         return res.status(403).json({ message: 'Access denied. Only Admins can access this' });
       }
     } catch (error) {
@@ -82,26 +82,22 @@ class BookController {
   }
 
   static bookingCancel = async (req, res) => {
-    const { email, bookingId, hotelId } = req.body;
+    const { email, customerID } = req.body;
     try {
-      const requestingUser = await UserModel.findOne({ email: req.user.email });
+      const requestingUser = await UserModel.findOne({ email: email });
       if (requestingUser.accounttype == 'Customer') {
-      const booking = await BookingModel.findById(bookingId);
-      if (!booking) {
-        return res.status(404).json({ message: 'Booking not found' });
+        const booking = await BookingModel.findOneAndDelete(customerID);
+        if (!booking) {
+          return res.status(404).json({ message: 'Booking not found' });
+        }
+        if (booking.status === 'Checked-In' || booking.status === 'Checked-Out') {
+          return res.status(400).json({ message: 'Booking is not cancellable' });
+        } else {
+          res.status(200).json({ message: 'Booking canceled successfully' });
+        }
+      } else {
+        res.status(200).json({ message: 'Access denied' });
       }
-      if (booking.status === 'Checked-In' || booking.status === 'Checked-Out') {
-        return res.status(400).json({ message: 'Booking is not cancellable' });
-      }
-      const room = await RoomModel.findById(hotelId);
-      room.availability = 'Available';
-      room.bookings.pull(bookingId);
-      await room.save();
-      await BookingModel.findByIdAndDelete(bookingId);
-      res.status(200).json({ message: 'Booking canceled successfully' });
-    }else{
-      res.status(200).json({ message: 'Access deniedg' });
-    }
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: 'Server error', error: error.message });

@@ -19,7 +19,8 @@ class UserController {
         const { firstName, lastName, email, accounttype, password } = req.body
         const user = await UserModel.findOne({ email: email })
         if (user) {
-            res.render(path.join(__dirname, "views/login.ejs"), { user: req.user });
+            // res.render(path.join(__dirname, "views/login.ejs"), { user: req.user });
+            res.send({ "status": "failed", "message": "Email already exists" })
         } else {
             if (firstName && lastName && email && accounttype && password) {
                 try {
@@ -34,12 +35,13 @@ class UserController {
                     })
                     await doc.save()
                     const saved_user = await UserModel.findOne({ email: req.body.email })
-                    if (saved_user) {
-                        res.render(path.join(__dirname, "views/login.ejs"), { user: req.user });
-                    } else {
-                        res.render(path.join(__dirname, "views/Hotel.ejs"));
-                        alert("Signup again")
-                    }
+                    res.status(201).send({ "status": "success", "message": "Registration Success" })
+                    // if (saved_user) {
+                    //     res.render(path.join(__dirname, "views/login.ejs"), { user: req.user });
+                    // } else {
+                    //     res.render(path.join(__dirname, "views/Hotel.ejs"));
+                    //     alert("Signup again")
+                    // }
                 } catch (error) {
                     console.log(error)
                     res.send({ "status": "failed", "message": "Unable to Register" })
@@ -58,9 +60,7 @@ class UserController {
                 if (user != null) {
                     const isMatch = await bcrypt.compare(password, user.password)
                     if ((user.email === email) && isMatch) {
-                        // Generate JWT Token
-                        const token = jwt.sign({ userID: user._id }, process.env.JWT_SECRET_KEY, { expiresIn: '5d' })
-                        res.send({ "status": "success", "message": "Login Success", "token": token })
+                        res.send({ "status": "success", "message": "Login Success" })
                     } else {
                         res.send({ "status": "failed", "message": "Email or Password is not Valid" })
                     }
@@ -88,12 +88,12 @@ class UserController {
                     console.log(link);
 
                     // Send Email
-                    let info = await transporter.sendMail({
-                        from: process.env.EMAIL_USER,
-                        to: user.email,
-                        subject: "Hotel - Password Reset Link",
-                        html: `<a href=${link}>Click Here</a> to Reset Your Password`,
-                    });
+                    // let info = await transporter.sendMail({
+                    //     from: process.env.EMAIL_USER,
+                    //     to: user.email,
+                    //     subject: "Hotel - Password Reset Link",
+                    //     html: `<a href=${link}>Click Here</a> to Reset Your Password`,
+                    // });
 
                     res.send({ status: "success", message: "Password Reset Email Sent... Please Check Your Email" });
                 } else {
@@ -109,43 +109,34 @@ class UserController {
     };
 
     static userPasswordReset = async (req, res) => {
-        const { password } = req.body;
-        const { token } = req.params;
+        const { password } = req.body
+        const { id, token } = req.params
+        const user = await UserModel.findById(id)
+        const new_secret = user._id + process.env.JWT_SECRET_KEY
         try {
-            const user = await UserModel.findById(id);
-            if (!user) {
-                return res.status(404).json({ status: "failed", message: "User not found" });
-            }
-            const new_secret = user._id.toString() + process.env.JWT_SECRET_KEY;
-            const savedToken = user.resetToken; // Updated the field to resetToken
-            if (!savedToken || token !== savedToken) {
-                return res.status(400).json({ status: "failed", message: "Invalid or expired token" });
-            }
-            jwt.verify(token, new_secret);
+            jwt.verify(token, new_secret)
             if (password) {
-                const salt = await bcrypt.genSalt(10);
-                const newHashPassword = await bcrypt.hash(password, salt);
-                user.password = newHashPassword;
-                user.resetToken = resetToken; // Updated the field to resetToken
-                await user.save();
-                res.send({ status: "success", message: "Password Reset Successfully" });
+                const salt = await bcrypt.genSalt(10)
+                const newHashPassword = await bcrypt.hash(password, salt)
+                await UserModel.findByIdAndUpdate(user._id, { $set: { password: newHashPassword } })
+                res.send({ "status": "success", "message": "Password Reset Successfully" })
             } else {
-                res.status(400).json({ status: "failed", message: "All Fields are Required" });
+                res.send({ "status": "failed", "message": "All Fields are Required" })
             }
         } catch (error) {
-            console.log(error);
-            res.status(500).json({ status: "failed", message: error.message });
+            console.log(error)
+            res.send({ "status": "failed", "message": "Invalid Token" })
         }
-    };
+    }
 
     static deleteUser = async (req, res) => {
-        const { email } = req.body;
+        const { email, emailtodelete } = req.body;
         try {
-            const requestingUser = await UserModel.findOne({ email: req.user.email });
+            const requestingUser = await UserModel.findOne({ email: email });
             if (requestingUser.accounttype !== 'Admin') {
                 return res.status(403).json({ message: 'Access denied. Only Admins can delete users.' });
             }
-            const deletedUser = await UserModel.findOneAndDelete({ email: email });
+            const deletedUser = await UserModel.findOneAndDelete({ email: emailtodelete });
             if (!deletedUser) {
                 return res.status(404).json({ message: 'User not found' });
             }

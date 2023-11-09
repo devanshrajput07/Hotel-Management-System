@@ -14,26 +14,25 @@ class RoomController {
   };
 
   static roomUpdate = async (req, res) => {
-    const { hotelId } = req.query;
-    const { email, accounttype, availability } = req.body;
+    const { email, hotelId, updatedavailability } = req.body;
     try {
-      const user = await UserModel.find({ email: email, accounttype: 'Hotel-Manager' });
+      const user = await UserModel.findOne({ email: email, accounttype: 'Hotel-Manager' });
       if (!user) {
-        res.send({ status: 'failed', message: 'Not Accessible to you' });
+        return res.send({ status: 'failed', message: 'Not Accessible to you' });
       } else {
-        if (hotelId && availability) {
-          try {
-            const doc = await RoomModel.findOneAndUpdate(
-              { hotelId: hotelId },
-              { availability: availability },
-              { new: true }
-            )
-            await doc.save()
-            res.send({ status: 'success', message: 'Update successful', data: doc });
-          } catch (error) {
-            console.log(error);
-            res.send({ status: 'failed', message: 'Unable to update' });
+        try {
+          const room = await RoomModel.findOneAndUpdate(
+            { hotelId: hotelId },
+            { availability: updatedavailability },
+            { new: true }
+          );
+          if (!room) {
+            return res.send({ status: 'failed', message: 'Room not found' });
           }
+          res.send({ status: 'success', message: 'Update successful', room });
+        } catch (error) {
+          console.log(error);
+          res.send({ status: 'failed', message: 'Unable to update' });
         }
       }
     } catch (error) {
@@ -41,6 +40,7 @@ class RoomController {
       res.send({ status: 'failed', message: 'An error occurred' });
     }
   }
+  
 }
 
 export default RoomController;
