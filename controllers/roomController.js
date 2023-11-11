@@ -25,7 +25,7 @@ class RoomController {
             { hotelId: hotelId },
             { availability: updatedavailability },
             { new: true }
-          );
+          ).exec();
           if (!room) {
             return res.send({ status: 'failed', message: 'Room not found' });
           }

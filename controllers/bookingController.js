@@ -1,3 +1,4 @@
+import moment from 'moment';
 import BookingModel from "../models/Booking.js";
 import RoomModel from "../models/Room.js";
 import UserModel from "../models/User.js";
@@ -11,17 +12,17 @@ class BookController {
         return res.status(404).json({ message: 'No available rooms for the provided hotelId' });
       }
       // Create a booking entry for the customer
-      const newBooking = new Booking({
+      const newBooking = new BookingModel({
         customerID: customerId,
-        roomID: mongoose.Schema.Types.ObjectId,
-        checkInDate,
-        checkOutDate,
+        roomID: room._id, 
+        checkInDate: checkInDate,
+        checkOutDate: checkOutDate,
         status: 'Reserved',
-      });
-      room.availability = 'Booked';
-      room.bookings.push(newBooking.id);
-      await room.save();
-      await newBooking.save();
+      })
+      room.availability = 'Booked'
+      room.bookings.push(newBooking._id)
+      await room.save()
+      await newBooking.save()
       res.status(200).json({ message: 'Room booked successfully', newBooking });
     } catch (error) {
       console.error(error);
@@ -30,9 +31,9 @@ class BookController {
   }
 
   static roomCheckout = async (req, res) => {
-    const { roomId } = req.body;
+    const { customerID, roomId, checkInDate } = req.body;
     try {
-      let booking = await BookingModel.find({ roomId: roomId });
+      let booking = await BookingModel.findOne({ roomId: roomId, customerID: customerID, checkInDate: checkInDate });
       if (!booking) {
         return res.status(404).json({ message: 'Room not found' });
       }
